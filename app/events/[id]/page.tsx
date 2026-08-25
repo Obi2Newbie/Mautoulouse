@@ -9,13 +9,13 @@ import { useAuth } from '@/lib/auth-context'
 import type { Event, EventAttendee } from '@/lib/types'
 
 export default function EventDetailPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
+  const router   = useRouter()
   const { user } = useAuth()
-  const [event, setEvent] = useState<Event | null>(null)
+  const [event,     setEvent]     = useState<Event | null>(null)
   const [attendees, setAttendees] = useState<EventAttendee[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading,   setLoading]   = useState(true)
   const [attending, setAttending] = useState(false)
-  const [myStatus, setMyStatus] = useState<string | null>(null)
+  const [myStatus,  setMyStatus]  = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -48,15 +48,15 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
     finally { setAttending(false) }
   }
 
-  if (loading) return <div><Navbar /><div className="flex items-center justify-center h-64 text-[#A1A1AA]">Chargement…</div></div>
-  if (!event) return <div><Navbar /><div className="text-center py-20">Événement introuvable.</div></div>
+  if (loading) return <div><Navbar/><div className="flex items-center justify-center h-64 text-[#A1A1AA]">Chargement…</div></div>
+  if (!event)  return <div><Navbar/><div className="text-center py-20">Événement introuvable.</div></div>
 
   const gradient = event.gradient ?? eventGradient(event.id)
-  const going = event.going_count ?? attendees.filter(a => a.status === 'going').length
-  const pct = Math.round((going / event.capacity) * 100)
+  const going    = event.going_count ?? attendees.filter(a => a.status === 'going').length
+  const pct      = Math.round((going / event.capacity) * 100)
   const priceEur = event.price_cents / 100
+  const isPast   = new Date(event.date) < new Date()
 
-  // Convert YouTube URL to embed URL
   function getEmbedUrl(url: string) {
     return url
       .replace('watch?v=', 'embed/')
@@ -65,14 +65,15 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
 
   return (
     <div>
-      <Navbar />
+      <Navbar/>
 
       {/* Hero */}
       <div className="h-[320px] relative" style={{ background: gradient }}>
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(0deg,rgba(11,26,44,.72) 0%,rgba(11,26,44,0) 55%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(0deg,rgba(11,26,44,.72) 0%,rgba(11,26,44,0) 55%)' }}/>
         <div className="absolute bottom-8 left-14 text-white">
           <div className="flex gap-2 mb-3">
             <span className="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full">{event.category}</span>
+            {isPast && <span className="bg-black/40 text-white text-xs font-bold px-3 py-1 rounded-full">Événement passé</span>}
           </div>
           <h1 className="font-display text-[42px] font-bold" style={{ textShadow: '0 2px 12px rgba(0,0,0,.3)' }}>{event.title}</h1>
         </div>
@@ -96,7 +97,7 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
               )}
             </div>
 
-            {/* YouTube video */}
+            {/* YouTube */}
             {event.youtube_url && (
               <div className="bg-white rounded-card border border-[#EAE7E2] shadow-card p-7 mb-5">
                 <h2 className="font-display text-[22px] font-bold mb-4">🎬 Vidéo</h2>
@@ -119,7 +120,7 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
                 <div className="flex flex-wrap gap-3">
                   {attendees.slice(0, 8).map(a => (
                     <div key={a.user_id} className="flex items-center gap-2">
-                      <Avatar firstName={a.profiles?.first_name ?? '?'} lastName={a.profiles?.last_name ?? '?'} id={a.user_id} size={32} />
+                      <Avatar firstName={a.profiles?.first_name ?? '?'} lastName={a.profiles?.last_name ?? '?'} id={a.user_id} size={32}/>
                       <span className="text-[13px] font-semibold">{a.profiles?.first_name}</span>
                     </div>
                   ))}
@@ -151,7 +152,7 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
                 <p className="text-[11px] text-[#A1A1AA] font-bold uppercase tracking-wider mb-2">PLACES</p>
                 <p className="text-sm font-bold mb-2">👥 {event.capacity - going} places restantes</p>
                 <div className="h-2 bg-[#EAE7E2] rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct > 80 ? '#E05C3A' : '#09A572' }} />
+                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct > 80 ? '#E05C3A' : '#09A572' }}/>
                 </div>
                 <p className="text-xs text-[#A1A1AA] mt-1">{going} inscrits sur {event.capacity}</p>
               </div>
@@ -165,17 +166,31 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
                 </div>
               )}
 
-              <button disabled={attending} onClick={() => handleAttend('going')}
-                className={`w-full py-3.5 rounded-xl font-bold text-base mb-2.5 transition-all ${myStatus === 'going' ? 'bg-teal text-white' : 'bg-coral text-white hover:opacity-90'
-                  } disabled:opacity-50`}>
-                {myStatus === 'going' ? '✅ Inscrit — Annuler' : '✅ Je participe!'}
-              </button>
-
-              <button disabled={attending} onClick={() => handleAttend('interested')}
-                className={`w-full py-2.5 rounded-xl font-bold text-sm mb-3 border-2 transition-all ${myStatus === 'interested' ? 'border-teal text-teal bg-teal/5' : 'border-navy text-navy hover:bg-navy/5'
-                  } disabled:opacity-50`}>
-                {myStatus === 'interested' ? '⭐ Intéressé — Annuler' : '⭐ Je suis intéressé'}
-              </button>
+              {/* Action buttons — hidden for past events */}
+              {isPast ? (
+                <div className="w-full py-3.5 rounded-xl bg-[#EAE7E2] text-[#A1A1AA] text-sm font-bold text-center">
+                  Événement terminé
+                </div>
+              ) : (
+                <>
+                  <button
+                    disabled={attending}
+                    onClick={() => handleAttend('going')}
+                    className={`w-full py-3.5 rounded-xl font-bold text-base mb-2.5 transition-all ${
+                      myStatus === 'going' ? 'bg-teal text-white' : 'bg-coral text-white hover:opacity-90'
+                    } disabled:opacity-50`}>
+                    {myStatus === 'going' ? '✅ Inscrit — Annuler' : '✅ Je participe!'}
+                  </button>
+                  <button
+                    disabled={attending}
+                    onClick={() => handleAttend('interested')}
+                    className={`w-full py-2.5 rounded-xl font-bold text-sm border-2 transition-all ${
+                      myStatus === 'interested' ? 'border-teal text-teal bg-teal/5' : 'border-navy text-navy hover:bg-navy/5'
+                    } disabled:opacity-50`}>
+                    {myStatus === 'interested' ? '⭐ Intéressé — Annuler' : '⭐ Je suis intéressé'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
