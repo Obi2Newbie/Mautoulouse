@@ -27,7 +27,7 @@ export default function AdminPhotosPage() {
       try {
         const [albums, events] = await Promise.all([
           photosApi.listAlbums(),
-          eventsApi.list({ status_filter: '' }), // all events
+          eventsApi.list({ status: '' }), // all events, // all events
         ])
 
         const pastEvents = events.filter(e => e.status === 'past' || new Date(e.date) < new Date())
