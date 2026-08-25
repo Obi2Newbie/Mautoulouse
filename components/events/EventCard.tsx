@@ -12,19 +12,20 @@ export default function EventCard({ event }: { event: Event }) {
 
   const gradient = event.gradient ?? eventGradient(event.id)
   const priceEur = event.price_cents / 100
+  const isPast   = new Date(event.date) < new Date() || event.status === 'past'
 
-  const [going,      setGoing]      = useState(event.going_count ?? 0)
-  const [myStatus,   setMyStatus]   = useState<'going' | 'interested' | null>(null)
-  const [attending,  setAttending]  = useState(false)
+  const [going,     setGoing]     = useState(event.going_count ?? 0)
+  const [myStatus,  setMyStatus]  = useState<'going' | 'interested' | null>(null)
+  const [attending, setAttending] = useState(false)
 
   async function handleAttend(e: React.MouseEvent, status: 'going' | 'interested') {
     e.stopPropagation()
+    if (isPast) return
     if (!user) { router.push('/login'); return }
     if (attending) return
     setAttending(true)
     try {
       if (myStatus === status) {
-        // Toggle off — cancel attendance
         await eventsApi.cancelAttend(event.id)
         setMyStatus(null)
         if (status === 'going') setGoing(g => Math.max(0, g - 1))
@@ -50,19 +51,28 @@ export default function EventCard({ event }: { event: Event }) {
 
       {/* Image area */}
       <div className="h-[184px] relative flex-shrink-0" style={{ background: gradient }}>
+        {isPast && (
+          <div className="absolute inset-0 bg-black/20"/>
+        )}
         <div className="absolute top-3 left-3">
           <span className="bg-white/93 text-navy text-xs font-bold px-3 py-1 rounded-full">{event.category}</span>
         </div>
         <div className="absolute top-3 right-3">
-          {event.price_cents === 0
-            ? <span className="bg-teal text-white text-xs font-bold px-3 py-1 rounded-full">Gratuit</span>
-            : <span className="bg-coral text-white text-[13px] font-extrabold px-3 py-1 rounded-full">{priceEur}€</span>}
+          {isPast ? (
+            <span className="bg-black/50 text-white text-xs font-bold px-3 py-1 rounded-full">Passé</span>
+          ) : event.price_cents === 0 ? (
+            <span className="bg-teal text-white text-xs font-bold px-3 py-1 rounded-full">Gratuit</span>
+          ) : (
+            <span className="bg-coral text-white text-[13px] font-extrabold px-3 py-1 rounded-full">{priceEur}€</span>
+          )}
         </div>
       </div>
 
       {/* Body */}
       <div className="p-5 flex-1">
-        <h3 className="font-display font-bold text-[19px] mb-2.5 leading-snug">{event.title}</h3>
+        <h3 className={`font-display font-bold text-[19px] mb-2.5 leading-snug ${isPast ? 'text-[#71717A]' : ''}`}>
+          {event.title}
+        </h3>
         <p className="text-[13px] text-[#71717A] leading-[1.9]">
           📅 {new Date(event.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' })} · ⏰ {event.time}
         </p>
@@ -79,29 +89,37 @@ export default function EventCard({ event }: { event: Event }) {
           <p className="text-[13px] text-[#71717A]">👥 {going}/{event.capacity}</p>
           <div className="w-[130px] h-1.5 bg-[#EAE7E2] rounded-full mt-1.5 overflow-hidden">
             <div className="h-full rounded-full transition-all"
-              style={{ width: `${pct}%`, background: pct > 80 ? '#E05C3A' : '#09A572' }}/>
+              style={{ width: `${pct}%`, background: isPast ? '#C4C4C4' : pct > 80 ? '#E05C3A' : '#09A572' }}/>
           </div>
         </div>
+
         <div className="flex gap-2">
+          {/* Intéressé */}
           <button
-            disabled={attending}
+            disabled={attending || isPast}
             onClick={e => handleAttend(e, 'interested')}
-            className={`inline-flex items-center gap-1.5 font-bold px-3.5 py-1.5 text-[13px] rounded-lg border transition-all disabled:opacity-50 ${
-              myStatus === 'interested'
+            className={`inline-flex items-center gap-1.5 font-bold px-3.5 py-1.5 text-[13px] rounded-lg border transition-all ${
+              isPast
+                ? 'border-[#EAE7E2] text-[#C4C4C4] bg-[#F5F5F5] cursor-not-allowed opacity-60'
+                : myStatus === 'interested'
                 ? 'bg-gold/10 border-gold text-[#92540A]'
                 : 'border-[#EAE7E2] text-[#71717A] hover:bg-gray-50 bg-transparent'
             }`}>
-            ⭐ {myStatus === 'interested' ? 'Intéressé ✓' : 'Intéressé'}
+            ⭐ {myStatus === 'interested' && !isPast ? 'Intéressé ✓' : 'Intéressé'}
           </button>
+
+          {/* Participer */}
           <button
-            disabled={attending || going >= event.capacity && myStatus !== 'going'}
+            disabled={attending || isPast || (going >= event.capacity && myStatus !== 'going')}
             onClick={e => handleAttend(e, 'going')}
-            className={`inline-flex items-center gap-1.5 font-bold px-3.5 py-1.5 text-[13px] rounded-lg transition-all disabled:opacity-50 ${
-              myStatus === 'going'
+            className={`inline-flex items-center gap-1.5 font-bold px-3.5 py-1.5 text-[13px] rounded-lg transition-all ${
+              isPast
+                ? 'bg-[#E5E5E5] text-[#A1A1AA] cursor-not-allowed opacity-60'
+                : myStatus === 'going'
                 ? 'bg-teal text-white'
                 : 'bg-coral text-white hover:opacity-90'
-            }`}>
-            ✅ {myStatus === 'going' ? 'Inscrit ✓' : 'Participer'}
+            } disabled:opacity-60`}>
+            {isPast ? '🔒 Terminé' : myStatus === 'going' ? '✅ Inscrit ✓' : '✅ Participer'}
           </button>
         </div>
       </div>

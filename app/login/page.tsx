@@ -16,8 +16,7 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
-    setLoading(true)
+    setError(''); setLoading(true)
     try {
       await login(email, password)
       router.push('/')
@@ -33,7 +32,7 @@ export default function LoginPage() {
       style={{ background: 'linear-gradient(135deg,#0E2640 0%,#1B3D5F 100%)' }}>
       <div className="w-full max-w-[420px]">
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="Mautoulouse" className="rounded-[10px] object-cover flex-shrink-0 w-[54px] h-[54px] rounded-[14px] bg-gradient-to-br  mx-auto mb-3 flex items-center justify-center"/>
+          <img src="/logo.png" alt="Mautoulouse" className="rounded-[10px] object-cover flex-shrink-0 w-[54px] h-[54px] rounded-[14px] bg-gradient-to-br  mx-auto mb-3 flex items-center justify-center" />
           <div className="font-display text-2xl font-bold text-white">Mautoulouse</div>
           <div className="text-[13px] text-white/50 mt-1">Connectez-vous à votre espace</div>
         </div>
@@ -44,12 +43,15 @@ export default function LoginPage() {
           )}
           <div className="flex flex-col gap-5">
             <Input label="Adresse email" type="email" placeholder="votre@email.com"
-              value={email} onChange={e=>setEmail(e.target.value)} required/>
+              value={email} onChange={e => setEmail(e.target.value)} required/>
             <div>
               <Input label="Mot de passe" type="password" placeholder="••••••••"
-                value={password} onChange={e=>setPassword(e.target.value)} required/>
+                value={password} onChange={e => setPassword(e.target.value)} required/>
               <div className="text-right mt-2">
-                <span className="text-[13px] text-coral font-semibold cursor-pointer hover:underline">Mot de passe oublié ?</span>
+                <Link href="/forgot-password"
+                  className="text-[13px] text-coral font-semibold no-underline hover:underline">
+                  Mot de passe oublié ?
+                </Link>
               </div>
             </div>
           </div>
@@ -57,10 +59,6 @@ export default function LoginPage() {
             className="w-full mt-6 py-3.5 rounded-xl bg-coral text-white font-bold text-base hover:opacity-90 transition-opacity disabled:opacity-50">
             {loading ? 'Connexion en cours…' : 'Se connecter'}
           </button>
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-[#EAE7E2]"/><span className="text-[13px] text-[#A1A1AA]">ou</span>
-            <div className="flex-1 h-px bg-[#EAE7E2]"/>
-          </div>
           <p className="text-center mt-6 text-sm text-[#71717A]">
             Pas encore de compte ?{' '}
             <Link href="/signup" className="text-coral font-bold no-underline hover:underline">S'inscrire</Link>
