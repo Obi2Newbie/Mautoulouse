@@ -17,7 +17,7 @@ export default function EventsPage() {
 
   useEffect(() => {
     // Fetch all events (no status filter = all statuses)
-    eventsApi.list({ status_filter: '' })
+    eventsApi.list({ status: '' })
       .then(setAllEvents)
       .catch(console.error)
       .finally(() => setLoading(false))

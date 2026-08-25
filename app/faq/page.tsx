@@ -15,7 +15,7 @@ export default function FAQPage() {
     }, [])
 
     // Group by category
-    const categories = [...new Set(faqs.map(f => f.category))]
+    const categories = Array.from(new Set(faqs.map(f => f.category)))
 
     const filtered = faqs.filter(f =>
         f.question.toLowerCase().includes(search.toLowerCase()) ||

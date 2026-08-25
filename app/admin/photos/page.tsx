@@ -27,7 +27,7 @@ export default function AdminPhotosPage() {
       try {
         const [albums, events] = await Promise.all([
           photosApi.listAlbums(),
-          eventsApi.list({ status: '' }), // all events, // all events
+          eventsApi.list({ status: '' }), // all events
         ])
 
         const pastEvents = events.filter(e => e.status === 'past' || new Date(e.date) < new Date())
@@ -76,7 +76,7 @@ export default function AdminPhotosPage() {
 
   async function openLightbox(albumId: string, photoId: string, colors: string[], idx: number, total: number) {
     setLbLoading(true)
-    setLightbox({ albumId, photo: { id: photoId, album_id: albumId, mime_type: '', file_name: '', file_size_bytes: 0 }, colors, idx, total })
+    setLightbox({ albumId, photo: { id: photoId, album_id: albumId, mime_type: '', file_name: '', file_size_bytes: 0, uploaded_by: '' }, colors, idx, total })
     try {
       const p = await photosApi.getPhoto(albumId, photoId)
       setLightbox(l => l ? { ...l, photo: p } : null)
